@@ -43,7 +43,12 @@
           <div class="panel-body">
             <img alt="140x140" data-src="holder.js/140x140" class="img-rounded img-center" style="width: 100%;" src="https://animalso.com/wp-content/uploads/2017/01/Golden-Retriever_6.jpg" data-holder-rendered="true">
             <br/><br/>
-            <button class="btn btn-default btn-adopt" type="button" data-id="0">Adopt</button>
+            <div class="input-group">
+              <span class="input-group-addon">Donation</span>
+              <input type="number" value="0" class="form-control" aria-label="Amount (in Ether)" name="petDonation" data-id="-1">
+              <span class="input-group-addon">Ether</span>
+            </div>
+            <button class="btn btn-default btn-adopt" style="margin-top: 6px" type="button" data-id="0">Adopt</button>
           </div>
         </div>
       </div>
@@ -61,7 +66,6 @@
             <div class="input-group">
               <input type="text" class="form-control" placeholder="Pet Name" aria-describedby="" name="petName" id="petName">
             </div>
-          </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             <button type="button" id="add-pet" class="btn btn-primary">Add pet</button>

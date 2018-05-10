@@ -26,9 +26,12 @@ contract Adoption {
     }
 
 	// Adopting a pet
+    // Adicionado modificador 'payable' que possibilita ao contrato receber valores
+    // Os valores ficam salvos no contrato em si, acessiveis na variavel `this.balance`.
     function adopt(uint petId)
         validPet(petId)
         public
+        payable
         returns (uint)
     {
         Pet storage pet = pets[petId];
