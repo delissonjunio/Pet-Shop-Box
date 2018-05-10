@@ -48,7 +48,16 @@
               <input type="number" value="0" class="form-control" aria-label="Amount (in Ether)" name="petDonation" data-id="-1">
               <span class="input-group-addon">Ether</span>
             </div>
-            <button class="btn btn-default btn-adopt" style="margin-top: 6px" type="button" data-id="0">Adopt</button>
+            <button name="adoptPet" class="btn btn-default btn-adopt" style="margin-top: 5px" type="button" data-id="0">Adopt</button>
+            <div style="margin-top: 6px;">
+              <button name="approveAdoption" class="btn btn-success btn-approve" type="button" data-id="0">Allow</button>
+              <button name="denyAdoption" class="btn btn-danger btn-deny" type="button" data-id="0">Deny</button>
+            </div>
+            <div style="margin-top: 5px">
+              <span name="petAvailable" data-id="-1" class="label label-success">Available</span>
+              <span name="petWaitingForApproval" data-id="-1" class="label label-warning">Waiting for Approval</span>
+              <span name="petAdopted" data-id="-1" class="label label-info">Adopted</span>
+            </div>
           </div>
         </div>
       </div>
