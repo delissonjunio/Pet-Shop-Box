@@ -16,7 +16,7 @@ App = {
 	  App.web3Provider = web3.currentProvider;
 	} else {
 	  // If no injected web3 instance is detected, fall back to Ganache
-	  // App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
+	  App.web3Provider = new Web3.providers.HttpProvider('http://localhost:8545');
 	}
 	App.web3 = new Web3(App.web3Provider);
 
@@ -71,12 +71,18 @@ App = {
             petTemplate.find('.panel-title').text(App.web3.toAscii(result[i][0]));
             petTemplate.find('img').attr('src', App.images[Math.floor(Math.random() * App.images.length)]);
             petTemplate.find('.btn-adopt').attr('data-id', i);
+            petTemplate.find('input[name="petDonation"]').attr('data-id', i);
             result[i][1] != '0x0000000000000000000000000000000000000000' ?
               petTemplate.find('.btn-adopt').text('Adopted').attr('disabled', true) :
               petTemplate.find('.btn-adopt').text('Adopt').attr('disabled', false);
 
             petsRow.append(petTemplate.html());
           }
+
+          petTemplate.find('.panel-title').text("");
+          petTemplate.find('img').attr('src', "");
+          petTemplate.find('.btn-adopt').attr('data-id', -1);
+          petTemplate.find('input[name="petDonation"]').attr('data-id', -1);
         });
       } else {
         $('.btn-addPet').hide();
@@ -118,6 +124,8 @@ App = {
     event.preventDefault();
 
     var petId = parseInt($(event.target).data('id'));
+    var donationAmount = parseInt($('input[name="petDonation"][data-id="' + petId + '"]').val());
+    var donationAmountInWei = App.web3.toWei(donationAmount, 'ether')
 
     App.web3.eth.getAccounts(function(error, accounts) {
       if (error) {
@@ -129,7 +137,9 @@ App = {
       App.contracts.Adoption.deployed().then(function(instance) {
         adoptionInstance = instance;
 
-        return adoptionInstance.adopt(petId, {from: account});
+        // Aqui adotamos o pet enviando o valor especificado pelo usuario
+        // apos transformacao em Wei
+        return adoptionInstance.adopt(petId, {from: account, value: donationAmountInWei});
       }).then(function(result) {
         setTimeout(function() {
           return App.loadPets();
