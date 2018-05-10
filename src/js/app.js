@@ -1,3 +1,9 @@
+var PetState = {
+  WAITING_FOR_ADOPTION: 0,
+  WAITING_FOR_APPROVAL: 1,
+  ADOPTED: 2
+}
+
 App = {
   web3Provider: null,
   web3: null,
@@ -41,7 +47,64 @@ App = {
 
   bindEvents: function() {
     $(document).on('click', '.btn-adopt', App.adopt);
+    $(document).on('click', '.btn-approve', App.allowAdoption);
+
+    // Eventos dos botoes de aceitar e negar adocao
+    // Neles chamamos apenas as funcoes apropriadas do contrato e ele se encarrega do resto
+    $(document).on('click', '.btn-deny', App.denyAdoption);
     $(document).on('click', '#add-pet', App.addPet);
+  },
+
+  allowAdoption: function (event) {
+    event.preventDefault();
+
+    var petId = parseInt($(event.target).data('id'));
+
+    App.web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.Adoption.deployed().then(function(instance) {
+        adoptionInstance = instance;
+
+        return adoptionInstance.acceptAdoptionRequest(petId, {from: account});
+      }).then(function(result) {
+        setTimeout(function() {
+          return App.loadPets();
+        }, 2000);
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
+  },
+
+  denyAdoption: function () {
+    event.preventDefault();
+
+    var petId = parseInt($(event.target).data('id'));
+
+    App.web3.eth.getAccounts(function(error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+
+      var account = accounts[0];
+
+      App.contracts.Adoption.deployed().then(function(instance) {
+        adoptionInstance = instance;
+
+        return adoptionInstance.denyAdoptionRequest(petId, {from: account});
+      }).then(function(result) {
+        setTimeout(function() {
+          return App.loadPets();
+        }, 2000);
+      }).catch(function(err) {
+        console.log(err.message);
+      });
+    });
   },
 
   loadPets: function() {
@@ -68,13 +131,46 @@ App = {
           petsRow.empty();
 
           for(i = 0; i < numberOfPets; i++) {
+            let [name, adopter, state, donationAmount] = result[i]
+            name = App.web3.toAscii(name)
+            state = App.web3.toDecimal(state)
+            donationAmount = App.web3.toDecimal(donationAmount)
+
+            // Gambiarra pra poder fazer a tela ficar bonitinha igual queremos
+            // gracas a deus existem frameworks js em 2018 e nao tem que trabalhar com jquery mais
+
             petTemplate.find('.panel-title').text(App.web3.toAscii(result[i][0]));
             petTemplate.find('img').attr('src', App.images[Math.floor(Math.random() * App.images.length)]);
             petTemplate.find('.btn-adopt').attr('data-id', i);
+            petTemplate.find('.btn-approve').attr('data-id', i);
+            petTemplate.find('.btn-deny').attr('data-id', i);
             petTemplate.find('input[name="petDonation"]').attr('data-id', i);
-            result[i][1] != '0x0000000000000000000000000000000000000000' ?
-              petTemplate.find('.btn-adopt').text('Adopted').attr('disabled', true) :
+
+            if (state === PetState.WAITING_FOR_ADOPTION) {
               petTemplate.find('.btn-adopt').text('Adopt').attr('disabled', false);
+              petTemplate.find('.btn-approve')[0].style.display = 'none';
+              petTemplate.find('.btn-deny')[0].style.display = 'none';
+
+              petTemplate.find('span[name=petAvailable]')[0].style.display = 'block'
+              petTemplate.find('span[name=petWaitingForApproval]')[0].style.display = 'none'
+              petTemplate.find('span[name=petAdopted]')[0].style.display = 'none'
+            } else if (state === PetState.WAITING_FOR_APPROVAL) {
+              petTemplate.find('.btn-adopt').text('Waiting for approval').attr('disabled', true)
+              petTemplate.find('.btn-approve')[0].style.display = 'inline-block';
+              petTemplate.find('.btn-deny')[0].style.display = 'inline-block';
+
+              petTemplate.find('span[name=petAvailable]')[0].style.display = 'none'
+              petTemplate.find('span[name=petWaitingForApproval]')[0].style.display = 'block'
+              petTemplate.find('span[name=petAdopted]')[0].style.display = 'none'
+            } else if (state === PetState.ADOPTED) {
+              petTemplate.find('.btn-adopt').text('Adopted').attr('disabled', true)
+              petTemplate.find('.btn-approve')[0].style.display = 'none';
+              petTemplate.find('.btn-deny')[0].style.display = 'none';
+
+              petTemplate.find('span[name=petAvailable]')[0].style.display = 'none'
+              petTemplate.find('span[name=petWaitingForApproval]')[0].style.display = 'none'
+              petTemplate.find('span[name=petAdopted]')[0].style.display = 'block'
+            }
 
             petsRow.append(petTemplate.html());
           }
@@ -82,6 +178,8 @@ App = {
           petTemplate.find('.panel-title').text("");
           petTemplate.find('img').attr('src', "");
           petTemplate.find('.btn-adopt').attr('data-id', -1);
+          petTemplate.find('.btn-approve').attr('data-id', -1);
+          petTemplate.find('.btn-deny').attr('data-id', -1);
           petTemplate.find('input[name="petDonation"]').attr('data-id', -1);
         });
       } else {
