@@ -17,6 +17,15 @@ contract Adoption {
         PetState state;
     }
 
+    // Evento que emitimos toda vez que um pet eh adotado com sucesso
+    // (pedido de adocao aprovado)
+    event AdoptionEvent (
+        bytes petName,
+        uint petId,
+        uint donationAmount,
+        address adopter
+    );
+
     Pet[] public pets;
     address owner;
 
@@ -92,6 +101,14 @@ contract Adoption {
         pet.state = PetState.ADOPTED;
 
         owner.transfer(donationAmount);
+
+        // Apos tudo isso der certo, emitimos o evento de adocao para o log
+        emit AdoptionEvent(
+            pet.name,
+            petId,
+            donationAmount,
+            pet.adopter
+        );
     }
 
     // Deny adoption

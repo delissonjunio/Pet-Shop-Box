@@ -38,6 +38,24 @@ App = {
       // Set the provider for our contract
       App.contracts.Adoption.setProvider(App.web3Provider);
 
+      App.contracts.Adoption.deployed().then(function(instance) {
+        var adoptionEvent = instance.AdoptionEvent();
+
+        adoptionEvent.watch(function(error, result){
+          // Recebemos aqui eventos de adocao do log
+          // Vamos apenas joga-los em um modal e mostrar quando a pagina carregar
+
+          if (!error)
+          {
+            $('#adoptionLogModalBody').text(JSON.stringify(result, null, 4))
+            $('#adoptionLogModal').modal({ show: true})
+
+          } else {
+            console.log(error);
+          }
+        });
+      })
+
       // Use our contract to retrieve and mark the adopted pets
       return App.loadPets();
     });
